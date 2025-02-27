@@ -1,79 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebAR Dish Model</title>
-
-    <!-- A-Frame and WebXR -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-xr@latest/dist/aframe-xr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@master/aframe/build/aframe-ar.min.js"></script>
+  </head>
+  <body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs>
+      
+      <!-- Lighting for better visuals -->
+      <a-light type="directional" position="0 5 5"></a-light>
 
-    <style>
-        body { margin: 0; overflow: hidden; }
-        #startButton {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 15px 25px;
-            font-size: 18px;
-            background-color: #007BFF; color: white;
-            border: none; border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
+      <!-- Load 3D Dish Model (You Can Replace This with Your Own Model) -->
+      <a-entity position="0 0 -2" rotation="0 180 0" scale="0.5 0.5 0.5"
+        gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.glb">
+      </a-entity>
 
-    <button id="startButton">Start AR</button>
-
-    <a-scene 
-        webxr="optionalFeatures: hit-test;"
-        vr-mode-ui="enabled: false" 
-        embedded>
-        
-        <!-- Lighting -->
-        <a-light type="directional" position="1 3 2"></a-light>
-
-        <!-- 3D Dish Model (Using Your GitHub Model) -->
-        <a-entity 
-            id="dishModel"
-            gltf-model="https://seeeatenjoy-test.github.io/test-1/dish-model.glb"
-            scale="0.5 0.5 0.5"
-            visible="false">
-        </a-entity>
-
-        <!-- Camera -->
-        <a-camera position="0 1.6 0"></a-camera>
+      <!-- Camera -->
+      <a-entity camera></a-entity>
 
     </a-scene>
-
-    <script>
-        document.getElementById('startButton').addEventListener('click', function() {
-            let scene = document.querySelector('a-scene');
-            let model = document.getElementById("dishModel");
-
-            navigator.xr.requestSession('immersive-ar', {
-                requiredFeatures: ['hit-test']
-            }).then(session => {
-                scene.renderer.xr.setSession(session);
-                
-                session.requestReferenceSpace('viewer').then(refSpace => {
-                    session.requestHitTestSource({ space: refSpace }).then(hitTestSource => {
-                        session.addEventListener('select', event => {
-                            const hit = hitTestSource.getHitResults();
-                            if (hit.length > 0) {
-                                let position = hit[0].pose.transform.position;
-                                model.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
-                                model.setAttribute('visible', 'true');
-                            }
-                        });
-                    });
-                });
-            });
-
-            document.getElementById('startButton').style.display = 'none';
-        });
-    </script>
-
-</body>
+  </body>
 </html>
