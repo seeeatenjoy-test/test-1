@@ -3,64 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Markerless Demo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>iOS Markerless WebAR</title>
 </head>
-<body style="margin: 0; overflow: hidden;">
-    <button id="start-ar" style="position: absolute; top: 20px; left: 20px; z-index: 10; padding: 10px; font-size: 16px;">
-        Start AR
-    </button>
-    <script>
-        if (!navigator.xr) {
-            alert("WebXR not supported on this browser.");
-        }
+<body style="text-align: center; font-family: Arial, sans-serif;">
+    <h1>Tap to View in AR</h1>
+    <p>Click the button below to place the 3D model in your real environment.</p>
 
-        let scene, camera, renderer, xrSession, xrRefSpace;
+    <!-- AR Button with USDZ Model -->
+    <a rel="ar" href="https://seeeatenjoy-test.github.io/test-1/model.usdz">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Apple_AR_Quick_Look_Icon.png" 
+             width="200" alt="View in AR">
+    </a>
 
-        document.getElementById("start-ar").addEventListener("click", async () => {
-            if (!navigator.xr) return;
-
-            try {
-                xrSession = await navigator.xr.requestSession("immersive-ar", { requiredFeatures: ["hit-test"] });
-                setupARScene();
-                xrSession.requestAnimationFrame(onXRFrame);
-            } catch (e) {
-                alert("Failed to start WebAR: " + e.message);
-            }
-        });
-
-        function setupARScene() {
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.xr.enabled = true;
-            document.body.appendChild(renderer.domElement);
-
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
-            scene.add(camera);
-
-            let light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-            scene.add(light);
-
-            let geometry = new THREE.SphereGeometry(0.1, 32, 32);
-            let material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            let sphere = new THREE.Mesh(geometry, material);
-            sphere.position.set(0, 0, -0.5);
-            scene.add(sphere);
-
-            xrSession.addEventListener("end", () => document.body.removeChild(renderer.domElement));
-            xrSession.requestReferenceSpace("local").then(refSpace => xrRefSpace = refSpace);
-            renderer.setAnimationLoop(render);
-        }
-
-        function onXRFrame(time, frame) {
-            let session = frame.session;
-            session.requestAnimationFrame(onXRFrame);
-            renderer.render(scene, camera);
-        }
-
-        function render() {
-            renderer.render(scene, camera);
-        }
-    </script>
+    <p>(Works only in Safari on iPhone/iPad)</p>
 </body>
 </html>
