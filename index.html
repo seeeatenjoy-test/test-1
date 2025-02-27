@@ -1,55 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <title>Markerless WebAR</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAR Dish Model</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@master/aframe/build/aframe-ar.min.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <a-scene
-      vr-mode-ui="enabled: false"
-      embedded
-      arjs="sourceType: webcam; debugUIEnabled: false;"
-      renderer="logarithmicDepthBuffer: true;"
-    >
-      <!-- Add your 3D model here -->
-      <a-entity
-        id="model"
-        gltf-model="url(https://cdn.glitch.global/5e8a7145-3f8e-4b0b-9b6b-5b5b5b5b5b5b/duck.glb)"
-        scale="1 1 1"
-        position="0 0 -1"
-        rotation="0 0 0"
-        visible="true"
-      ></a-entity>
+    <a-scene embedded arjs>
+      
+      <!-- Lighting for better visuals -->
+      <a-light type="directional" position="0 5 5"></a-light>
 
-      <!-- Add a camera -->
+      <!-- Load 3D Dish Model (You Can Replace This with Your Own Model) -->
+      <a-entity position="0 0 -2" rotation="0 180 0" scale="0.5 0.5 0.5"
+        gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.glb">
+      </a-entity>
+
+      <!-- Camera -->
       <a-entity camera></a-entity>
 
-      <!-- Add a cursor for interaction -->
-      <a-cursor id="cursor" raycaster="objects: [tap-place]"></a-cursor>
-
-      <!-- Add a plane for surface detection -->
-      <a-entity
-        id="surface"
-        geometry="primitive: plane; width: 100; height: 100"
-        material="visible: false"
-        position="0 0 0"
-        rotation="-90 0 0"
-        tap-place
-      ></a-entity>
     </a-scene>
-
-    <script>
-      // Show the model when the surface is tapped
-      const model = document.querySelector("#model");
-      const surface = document.querySelector("#surface");
-
-      surface.addEventListener("click", (event) => {
-        const position = event.detail.intersection.point;
-        model.setAttribute("position", position);
-        model.setAttribute("visible", true);
-      });
-    </script>
   </body>
 </html>
