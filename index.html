@@ -4,18 +4,52 @@
     <meta charset="utf-8" />
     <title>Markerless WebAR</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30;">
+    <a-scene
+      vr-mode-ui="enabled: false"
+      embedded
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="logarithmicDepthBuffer: true;"
+    >
       <!-- Add your 3D model here -->
       <a-entity
+        id="model"
         gltf-model="url(https://seeeatenjoy-test.github.io/test-1/dish-model.glb)"
         scale="0.5 0.5 0.5"
         position="0 0 -1"
         rotation="0 0 0"
+        visible="false"
       ></a-entity>
-      <a-camera-static />
+
+      <!-- Add a camera -->
+      <a-entity camera></a-entity>
+
+      <!-- Add a cursor for interaction -->
+      <a-cursor id="cursor" raycaster="objects: [tap-place]"></a-cursor>
+
+      <!-- Add a plane for surface detection -->
+      <a-entity
+        id="surface"
+        geometry="primitive: plane; width: 100; height: 100"
+        material="visible: false"
+        position="0 0 0"
+        rotation="-90 0 0"
+        tap-place
+      ></a-entity>
     </a-scene>
+
+    <script>
+      // Show the model when the surface is tapped
+      const model = document.querySelector("#model");
+      const surface = document.querySelector("#surface");
+
+      surface.addEventListener("click", (event) => {
+        const position = event.detail.intersection.point;
+        model.setAttribute("position", position);
+        model.setAttribute("visible", true);
+      });
+    </script>
   </body>
 </html>
