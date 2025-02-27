@@ -3,78 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Dish Model</title>
-
-    <!-- Load Three.js -->
+    <title>WebAR Markerless Demo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <!-- Load WebXR ARButton -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/jsm/webxr/ARButton.js"></script>
-
-    <!-- Load GLTFLoader to handle .glb files -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
-
-    <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-    </style>
 </head>
-<body>
+<body style="margin: 0; overflow: hidden;">
+    <button id="start-ar" style="position: absolute; top: 20px; left: 20px; z-index: 10; padding: 10px; font-size: 16px;">
+        Start AR
+    </button>
+    <script>
+        if (!navigator.xr) {
+            alert("WebXR not supported on this browser.");
+        }
 
-<script>
-    let scene, camera, renderer, controller;
-    let model;
+        let scene, camera, renderer, xrSession, xrRefSpace;
 
-    function init() {
-        // Create scene
-        scene = new THREE.Scene();
+        document.getElementById("start-ar").addEventListener("click", async () => {
+            if (!navigator.xr) return;
 
-        // Set up camera
-        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 20);
-        
-        // Set up renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.xr.enabled = true;
-        document.body.appendChild(renderer.domElement);
-
-        // Add AR button
-        document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
-
-        // Add lighting
-        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-        scene.add(light);
-
-        // Load 3D Dish Model
-        const loader = new THREE.GLTFLoader();
-        loader.load('https://seeeatenjoy-test.github.io/test-1/dish-model.glb', function(gltf) {
-            model = gltf.scene;
-            model.scale.set(0.5, 0.5, 0.5);
-            model.visible = false; // Hide model until placement
-            scene.add(model);
+            try {
+                xrSession = await navigator.xr.requestSession("immersive-ar", { requiredFeatures: ["hit-test"] });
+                setupARScene();
+                xrSession.requestAnimationFrame(onXRFrame);
+            } catch (e) {
+                alert("Failed to start WebAR: " + e.message);
+            }
         });
 
-        // Set up AR controller for hit-test
-        controller = renderer.xr.getController(0);
-        controller.addEventListener('select', placeModel);
-        scene.add(controller);
+        function setupARScene() {
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.xr.enabled = true;
+            document.body.appendChild(renderer.domElement);
 
-        animate();
-    }
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+            scene.add(camera);
 
-    function placeModel() {
-        if (!model) return;
-        model.position.set(0, 0, -1); // Place model 1m in front of user
-        model.visible = true;
-    }
+            let light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+            scene.add(light);
 
-    function animate() {
-        renderer.setAnimationLoop(() => {
+            let geometry = new THREE.SphereGeometry(0.1, 32, 32);
+            let material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+            let sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(0, 0, -0.5);
+            scene.add(sphere);
+
+            xrSession.addEventListener("end", () => document.body.removeChild(renderer.domElement));
+            xrSession.requestReferenceSpace("local").then(refSpace => xrRefSpace = refSpace);
+            renderer.setAnimationLoop(render);
+        }
+
+        function onXRFrame(time, frame) {
+            let session = frame.session;
+            session.requestAnimationFrame(onXRFrame);
             renderer.render(scene, camera);
-        });
-    }
+        }
 
-    window.addEventListener('load', init);
-</script>
-
+        function render() {
+            renderer.render(scene, camera);
+        }
+    </script>
 </body>
 </html>
