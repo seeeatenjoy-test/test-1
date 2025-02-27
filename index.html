@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Markerless WebAR</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+  </head>
+  <body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30;">
+      <!-- Add your 3D model here -->
+      <a-entity
+        gltf-model="url(https://seeeatenjoy-test.github.io/test-1/dish-model.glb)"
+        scale="0.5 0.5 0.5"
+        position="0 0 -1"
+        rotation="0 0 0"
+      ></a-entity>
+      <a-camera-static />
+    </a-scene>
+  </body>
+</html>
