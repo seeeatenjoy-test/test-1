@@ -1,26 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebAR Dish Model</title>
+
+    <!-- A-Frame and WebXR -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@master/aframe/build/aframe-ar.min.js"></script>
-  </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
-      
-      <!-- Lighting for better visuals -->
-      <a-light type="directional" position="0 5 5"></a-light>
+    <script src="https://cdn.jsdelivr.net/npm/@webxr-polyfill"></script>
 
-      <!-- Load 3D Dish Model (You Can Replace This with Your Own Model) -->
-      <a-entity position="0 0 -2" rotation="0 180 0" scale="0.5 0.5 0.5"
-        gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.glb">
-      </a-entity>
+</head>
+<body style="margin: 0; overflow: hidden;">
 
-      <!-- Camera -->
-      <a-entity camera></a-entity>
+    <a-scene xr-mode-ui="enabled: false" renderer="antialias: true;" vr-mode-ui="enabled: false">
+        
+        <!-- Lighting for better visuals -->
+        <a-light type="directional" intensity="1" position="1 3 2"></a-light>
+
+        <!-- 3D Dish Model -->
+        <a-entity 
+            id="dishModel"
+            gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.glb"
+            scale="0.5 0.5 0.5"
+            visible="false">
+        </a-entity>
+
+        <!-- AR Camera -->
+        <a-camera position="0 1.6 0"></a-camera>
 
     </a-scene>
-  </body>
+
+    <script>
+        AFRAME.registerComponent('place-on-floor', {
+            init: function () {
+                let sceneEl = this.el;
+                let model = document.getElementById("dishModel");
+                
+                sceneEl.addEventListener('click', function (event) {
+                    let touch = event.detail.intersection.point;
+                    
+                    if (touch) {
+                        model.setAttribute('position', `${touch.x} 0 ${touch.z}`);
+                        model.setAttribute('visible', 'true');
+                    }
+                });
+            }
+        });
+
+        document.querySelector('a-scene').setAttribute('place-on-floor', '');
+    </script>
+
+</body>
 </html>
