@@ -1,31 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR with AR.js on GitHub Pages</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
+    <meta name='mobile-web-app-capable' content='yes'>
+    <meta name='apple-mobile-web-app-capable' content='yes'>
+
+    <meta http-equiv="origin-trial" content="Ahfj+MLeL6bh+LNmpnSdepftxoDHHwjUG2KWZ4jjCb1WoZxtBlzF3cDHuJNVqnhr3HXJwQ+kLaw57NO15S0mRwwAAABkeyJvcmlnaW4iOiJodHRwczovL2ltbWVyc2l2ZS13ZWIuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJYUlBsYW5lRGV0ZWN0aW9uIiwiZXhwaXJ5IjoxNjI5ODQ5NTk5fQ==">
+
+    <title>AR Plane Detection</title>
+
+    <style>
+      body { margin: 0; overflow: hidden; }
+      header { position: absolute; z-index: 999; top: 20px; left: 20px; }
+    </style>
+
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js' rel='stylesheet'>
   </head>
-  <body style="margin: 0; overflow: hidden;">
 
-    <!-- Create the AR Scene -->
-    <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix;">
-      
-      <!-- Add a camera for AR -->
-      <a-camera></a-camera>
+  <body>
+    <header>
+      <details open>
+        <summary>AR Plane Detection with Anchors</summary>
+        This example shows AR Plane Detection with Anchors, and allows you to place objects.
+        <p>
+          <input id="usePlaneOrigin" type="checkbox" checked>
+          <label for="usePlaneOrigin">Show Plane Origins</label><br/>
+        </p>
+      </details>
+    </header>
 
-      <!-- Add the 3D model (dish-model.gltf) here -->
-      <!-- Default model: Cube as placeholder -->
-      <a-box position="0 0.5 -2" rotation="0 45 0" color="#4CC3D9" scale="0.5 0.5 0.5"></a-box>
+    <script type="module">
+      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
+      import {WebXRButton} from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/webxr/WebXRButton.js';
 
-      <!-- Optionally, add a GLTF model -->
-      <!-- You can upload a dish model to your GitHub repo and link it here -->
-      <!-- Example model URL: 'https://seeeatenjoy-test.github.io/test-1/dish-model.gltf' -->
-      <!-- Uncomment below to use a GLTF model -->
-      <!-- <a-entity gltf-model="url(dish-model.gltf)" scale="0.5 0.5 0.5" position="0 0.5 -1" rotation="0 45 0"></a-entity> -->
+      let xrButton = null;
+      let container;
+      let camera, scene, renderer;
+      let reticle;
+      let hitResult;
 
-    </a-scene>
+      const usePlaneOrigin = document.getElementById('usePlaneOrigin');
+      const allPlaneOrigins = [];
 
+      usePlaneOrigin.addEventListener('input', element => {
+        allPlaneOrigins.forEach(group => {
+          group.visible = usePlaneOrigin.checked;
+        });
+      });
+
+      init();
+
+      function init() {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+        light.position.set(0.5, 1, 0.25);
+        scene.add(light);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.xr.enabled = true;
+        renderer.autoClear = false;
+        container.appendChild(renderer.domElement);
+
+        xrButton = new WebXRButton({
+          onRequestSession: onRequestSession,
+          onEndSession: onEndSession,
+          textEnterXRTitle: "START AR",
+          textXRNotFoundTitle: "AR NOT FOUND",
+          textExitXRTitle: "EXIT AR",
+        });
+
+        document.querySelector('header').appendChild(xrButton.domElement);
+
+        if (navigator.xr) {
+          navigator.xr.isSessionSupported('immersive-ar')
+                      .then((supported) => {
+            xrButton.enabled = supported;
+          });
+        }
+
+        reticle = new THREE.Mesh(
+          new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+          new THREE.MeshBasicMaterial()
+        );
+        reticle.matrixAutoUpdate = false;
+        reticle.visible = false;
+        scene.add(reticle);
+
+        const loader = new THREE.TextureLoader();
+        const gridTexture = loader.load('https://raw.githubusercontent.com/google-ar/arcore-android-sdk/c684bbda37e44099c273c3e5274fae6fccee293c/samples/hello_ar_c/app/src/main/assets/models/trigrid.png');
+        gridTexture.wrapS = THREE.RepeatWrapping;
+        gridTexture.wrapT = THREE.RepeatWrapping;
+
+        const createPlaneMaterial = (params) => 
+          new THREE.MeshBasicMaterial(Object.assign(params, {
+            map: gridTexture,
+            opacity: 0.5,
+            transparent: true,
+          }));
+
+        window.addEventListener('resize', onWindowResize);
+      }
+
+      function onRequestSession() {
+        let sessionInit = {
+          requiredFeatures: ['anchors', 'plane-detection'],
+          optionalFeatures: [],
+        };
+        navigator.xr.requestSession('immersive-ar', sessionInit).then((session) => {
+          xrButton.setSession(session);
+          onSessionStarted(session);
+        });
+      }
+
+      function onSessionStarted(session) {
+        session.addEventListener('end', onSessionEnded);
+        renderer.xr.setReferenceSpaceType('local');
+        renderer.xr.setSession(session);
+        renderer.setAnimationLoop(render);
+      }
+
+      function onEndSession(session) {
+        session.end();
+      }
+
+      function onSessionEnded(event) {
+        xrButton.setSession(null);
+        renderer.setAnimationLoop(null);
+        renderer.xr.setSession(null);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function createGeometryFromPolygon(polygon) {
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        polygon.forEach(point => {
+          vertices.push(point.x, point.y, point.z);
+        });
+        const indices = [];
+        for(let i = 2; i < polygon.length; ++i) {
+          indices.push(0, i-1, i);
+        }
+        geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+        geometry.setIndex(indices);
+        return geometry;
+      }
+
+      function processPlanes(timestamp, frame) {
+        const referenceSpace = renderer.xr.getReferenceSpace();
+        if (frame.detectedPlanes) {
+          frame.detectedPlanes.forEach(plane => {
+            const planePose = frame.getPose(plane.planeSpace, referenceSpace);
+            let planeMesh;
+
+            if (planePose) {
+              planeMesh = new THREE.Mesh(createGeometryFromPolygon(plane.polygon), new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true }));
+              planeMesh.matrixAutoUpdate = false;
+              scene.add(planeMesh);
+              planeMesh.matrix.fromArray(planePose.transform.matrix);
+            }
+          });
+        }
+      }
+
+      function render(timestamp, frame) {
+        if (frame) {
+          processPlanes(timestamp, frame);
+
+          const referenceSpace = renderer.xr.getReferenceSpace();
+          const session = renderer.xr.getSession();
+
+          reticle.visible = false;
+          hitResult = null;
+
+          const pose = frame.getViewerPose(referenceSpace);
+          if (pose) {
+            const ray = new XRRay(pose.transform);
+
+            const hitTestResults = hitTest(frame, ray, referenceSpace);
+            if (hitTestResults && hitTestResults.length > 0) {
+              hitResult = hitTestResults[0];
+              const hitMatrix = hitResult.hitMatrix;
+              hitMatrix[12] += 0.001; // offset for z-fighting
+              hitMatrix[13] += 0.001;
+              hitMatrix[14] += 0.001;
+              reticle.visible = true;
+              reticle.matrix.fromArray(hitMatrix);
+            }
+          }
+
+          renderer.render(scene, camera);
+        }
+      }
+    </script>
   </body>
 </html>
