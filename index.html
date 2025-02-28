@@ -1,149 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Restaurant Menu</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <!-- AR.js and Three.js Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.js"></script>
 
-    <title>AR Plane Detection</title>
+  <!-- AR.js marker-based AR setup -->
+  <a-scene embedded arjs>
+    <!-- Define the marker -->
+    <a-marker type="pattern" url="marker.patt">
+      <!-- 3D Model: Loaded as a GLB file -->
+      <a-entity gltf-model="url(monkey.glb)" scale="0.2 0.2 0.2" position="0 0 0" rotation="0 180 0"></a-entity>
+    </a-marker>
 
-    <style>
-      body { margin: 0; overflow: hidden; }
-    </style>
-  </head>
+    <!-- Camera -->
+    <a-entity camera></a-entity>
+  </a-scene>
 
-  <body>
-    <script type="module">
-      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
-
-      let container;
-      let camera, scene, renderer;
-      let reticle;
-      let hitResult;
-
-      init();
-
-      async function init() {
-        container = document.createElement('div');
-        document.body.appendChild(container);
-
-        scene = new THREE.Scene();
-
-        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
-        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-        light.position.set(0.5, 1, 0.25);
-        scene.add(light);
-
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.xr.enabled = true;
-        renderer.autoClear = false;
-        container.appendChild(renderer.domElement);
-
-        reticle = new THREE.Mesh(
-          new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
-          new THREE.MeshBasicMaterial()
-        );
-        reticle.matrixAutoUpdate = false;
-        reticle.visible = false;
-        scene.add(reticle);
-
-        window.addEventListener('resize', onWindowResize);
-
-        // Start AR session automatically when the page loads
-        try {
-          await startAR();
-        } catch (e) {
-          console.error("Error starting AR session:", e);
-        }
-      }
-
-      // Starts the AR session automatically
-      async function startAR() {
-        if (navigator.xr) {
-          const session = await navigator.xr.requestSession('immersive-ar', {
-            requiredFeatures: ['anchors', 'plane-detection'],
-            optionalFeatures: [],
-          });
-          onSessionStarted(session);
-        } else {
-          console.error("WebXR is not supported on this device.");
-        }
-      }
-
-      function onSessionStarted(session) {
-        console.log("AR session started");
-
-        session.addEventListener('end', onSessionEnded);
-        renderer.xr.setReferenceSpaceType('local');
-        renderer.xr.setSession(session);
-        renderer.setAnimationLoop(render);
-      }
-
-      function onSessionEnded(event) {
-        console.log("AR session ended");
-        renderer.setAnimationLoop(null);
-        renderer.xr.setSession(null);
-      }
-
-      function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      }
-
-      function processPlanes(timestamp, frame) {
-        const referenceSpace = renderer.xr.getReferenceSpace();
-        if (frame.detectedPlanes) {
-          frame.detectedPlanes.forEach(plane => {
-            const planePose = frame.getPose(plane.planeSpace, referenceSpace);
-            let planeMesh;
-
-            if (planePose) {
-              planeMesh = new THREE.Mesh(
-                new THREE.PlaneGeometry(1, 1), 
-                new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true })
-              );
-              planeMesh.matrixAutoUpdate = false;
-              scene.add(planeMesh);
-              planeMesh.matrix.fromArray(planePose.transform.matrix);
-            }
-          });
-        }
-      }
-
-      function render(timestamp, frame) {
-        if (frame) {
-          processPlanes(timestamp, frame);
-
-          const referenceSpace = renderer.xr.getReferenceSpace();
-          const session = renderer.xr.getSession();
-
-          reticle.visible = false;
-          hitResult = null;
-
-          const pose = frame.getViewerPose(referenceSpace);
-          if (pose) {
-            const ray = new XRRay(pose.transform);
-
-            const hitTestResults = hitTest(frame, ray, referenceSpace);
-            if (hitTestResults && hitTestResults.length > 0) {
-              hitResult = hitTestResults[0];
-              const hitMatrix = hitResult.hitMatrix;
-              hitMatrix[12] += 0.001; // offset for z-fighting
-              hitMatrix[13] += 0.001;
-              hitMatrix[14] += 0.001;
-              reticle.visible = true;
-              reticle.matrix.fromArray(hitMatrix);
-            }
-          }
-
-          renderer.render(scene, camera);
-        }
-      }
-    </script>
-  </body>
+  <!-- Simple instructions -->
+  <div style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 20px;">
+    <h3>Scan the marker with your camera to view the dish!</h3>
+  </div>
+</body>
 </html>
