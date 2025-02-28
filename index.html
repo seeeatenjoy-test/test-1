@@ -3,33 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR Restaurant Menu</title>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
-  </style>
-</head>
-<body>
-  <!-- AR.js and Three.js Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <title>AR.js Marker Example</title>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.js"></script>
-
-  <!-- AR.js marker-based AR setup -->
+  <script src="https://cdn.jsdelivr.net/gh/ndomcurdy/aframe-extras@v6.1.0/dist/aframe-extras.min.js"></script>
+  <script src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+</head>
+<body style="margin: 0px; overflow: hidden;">
   <a-scene embedded arjs>
-    <!-- Use the default Hiro marker -->
+    <!-- Hiro marker and a box object -->
     <a-marker preset="hiro">
-      <!-- 3D Model: Loaded as a GLB file -->
-      <a-entity gltf-model="url(monkey.glb)" scale="0.2 0.2 0.2" position="0 0 0" rotation="0 180 0"></a-entity>
+      <a-box color="#ff0000" material="opacity: 0.5" scale="0.5 0.5 0.5"></a-box>
     </a-marker>
 
-    <!-- Camera -->
+    <!-- Camera and cursor setup -->
     <a-entity camera></a-entity>
+    <a-cursor></a-cursor>
   </a-scene>
-
-  <!-- Simple instructions -->
-  <div style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 20px;">
-    <h3>Scan the Hiro marker with your camera to view the dish!</h3>
-  </div>
 </body>
 </html>
