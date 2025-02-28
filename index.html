@@ -11,13 +11,13 @@
   </head>
 
   <body style="margin: 0px; overflow: hidden; font-family: Monospace;">
-    <!-- A-Frame Scene Setup -->
     <a-scene embedded arjs>
       <!-- Hiro Marker -->
-      <a-marker preset="hiro">
+      <a-marker preset="hiro" id="hiro-marker">
         <!-- GLB Model -->
         <a-entity
-          gltf-model="url(https://github.com/seeeatenjoy-test/test-1/raw/main/monkey.glb)"
+          id="model"
+          gltf-model="url(https://github.com/seeeatenjoy-test/test-1/raw/main/your-model.glb)"
           scale="0.5 0.5 0.5"
           position="0 0 0"
           rotation="0 0 0"
@@ -26,11 +26,39 @@
 
       <!-- Camera Setup for AR -->
       <a-entity camera></a-entity>
+
+      <!-- Debugging Info -->
+      <a-text id="marker-status" value="Marker not detected" position="0 1 -2" scale="2 2 2" color="red"></a-text>
+      <a-text id="model-status" value="Model not loaded" position="0 0.8 -2" scale="2 2 2" color="red"></a-text>
     </a-scene>
 
     <script>
-      // Add AR.js code here if needed
-      // The A-Frame and AR.js will automatically handle the Hiro marker
+      const markerElement = document.getElementById('hiro-marker');
+      const markerStatusText = document.getElementById('marker-status');
+      const modelStatusText = document.getElementById('model-status');
+
+      // Add event listener for when the marker is detected
+      markerElement.addEventListener('markerFound', () => {
+        markerStatusText.setAttribute('value', 'Marker detected');
+        markerStatusText.setAttribute('color', 'green');
+      });
+
+      markerElement.addEventListener('markerLost', () => {
+        markerStatusText.setAttribute('value', 'Marker not detected');
+        markerStatusText.setAttribute('color', 'red');
+      });
+
+      // Check if model is loaded
+      const modelElement = document.getElementById('model');
+      modelElement.addEventListener('model-loaded', () => {
+        modelStatusText.setAttribute('value', 'Model loaded');
+        modelStatusText.setAttribute('color', 'green');
+      });
+
+      modelElement.addEventListener('error', () => {
+        modelStatusText.setAttribute('value', 'Model failed to load');
+        modelStatusText.setAttribute('color', 'red');
+      });
     </script>
   </body>
 </html>
