@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR.js Marker Example</title>
-  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.0/dist/aframe-extras.min.js"></script>
-  <script src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-</head>
-<body style="margin: 0px; overflow: hidden;">
-  <a-scene embedded arjs>
-    <!-- Hiro marker and a box object -->
-    <a-marker preset="hiro">
-      <a-box color="#ff0000" material="opacity: 0.5" scale="0.5 0.5 0.5"></a-box>
-    </a-marker>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Model with AR.js and A-Frame</title>
 
-    <!-- Camera and cursor setup -->
-    <a-entity camera>
-      <a-cursor></a-cursor>
-    </a-entity>
-  </a-scene>
-</body>
+    <!-- Include AR.js and A-Frame -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.js"></script>
+  </head>
+
+  <body style="margin: 0; overflow: hidden;">
+    <!-- AR.js Scene Setup -->
+    <a-scene embedded arjs>
+      <!-- Define the Hiro Marker -->
+      <a-marker preset="hiro">
+        <!-- GLB Model -->
+        <a-entity
+          gltf-model="url(https://github.com/seeeatenjoy-test/test-1/raw/main/monkey.glb)"
+          scale="0.5 0.5 0.5"
+          position="0 0 0"
+          rotation="0 0 0"
+        ></a-entity>
+      </a-marker>
+
+      <!-- Camera Setup for AR -->
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
 </html>
