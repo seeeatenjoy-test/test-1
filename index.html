@@ -1,64 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title> 2 AR Model with Hiro Marker</title>
-
-    <!-- Include A-Frame -->
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <!-- Include AR.js for marker-based AR -->
+    <title>AR Model with Hiro Marker</title>
+    <!-- Include Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Include AR.js -->
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.js"></script>
-  </head>
+    <!-- Include AR.js MarkerControl -->
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.js"></script>
+</head>
 
-  <body style="margin: 0px; overflow: hidden; font-family: Monospace;">
-    <a-scene embedded arjs>
-      <!-- Hiro Marker -->
-      <a-marker preset="hiro" id="hiro-marker">
+<body style="margin: 0px; overflow: hidden; font-family: Monospace;">
+
+<!-- AR Scene -->
+<a-scene embedded arjs="sourceType: webcam; detectionMode: mono;">
+    <!-- Hiro Marker -->
+    <a-marker preset="hiro" id="hiro-marker">
         <!-- GLB Model -->
-        <a-entity
-          id="model"
-          gltf-model="url(https://github.com/seeeatenjoy-test/test-1/raw/main/your-model.glb)"
-          scale="0.5 0.5 0.5"
-          position="0 0 0"
-          rotation="0 0 0"
-        ></a-entity>
-      </a-marker>
+        <a-entity 
+            id="model"
+            gltf-model="url(https://github.com/seeeatenjoy-test/test-1/raw/main/monkey.glb)"
+            scale="0.5 0.5 0.5"
+            position="0 0 0"
+            rotation="0 0 0"
+            animation="property: rotation; to: 0 360 0; dur: 10000; loop: true"
+            visible="false">
+        </a-entity>
+    </a-marker>
 
-      <!-- Camera Setup for AR -->
-      <a-entity camera></a-entity>
+    <!-- Camera Setup -->
+    <a-entity camera></a-entity>
+    
+    <!-- Debugging Info -->
+    <a-text id="marker-status" value="Marker not detected" position="0 1 -2" scale="2 2 2" color="red"></a-text>
+    <a-text id="model-status" value="Model not loaded" position="0 0.8 -2" scale="2 2 2" color="red"></a-text>
+</a-scene>
 
-      <!-- Debugging Info -->
-      <a-text id="marker-status" value="Marker not detected" position="0 1 -2" scale="2 2 2" color="red"></a-text>
-      <a-text id="model-status" value="Model not loaded" position="0 0.8 -2" scale="2 2 2" color="red"></a-text>
-    </a-scene>
+<script>
+    // Get elements for debugging
+    const markerElement = document.getElementById('hiro-marker');
+    const markerStatusText = document.getElementById('marker-status');
+    const modelStatusText = document.getElementById('model-status');
+    const modelElement = document.getElementById('model');
 
-    <script>
-      const markerElement = document.getElementById('hiro-marker');
-      const markerStatusText = document.getElementById('marker-status');
-      const modelStatusText = document.getElementById('model-status');
-
-      // Add event listener for when the marker is detected
-      markerElement.addEventListener('markerFound', () => {
+    // Add event listener for marker detection
+    markerElement.addEventListener('markerFound', () => {
         markerStatusText.setAttribute('value', 'Marker detected');
         markerStatusText.setAttribute('color', 'green');
-      });
+        modelElement.setAttribute('visible', 'true');
+    });
 
-      markerElement.addEventListener('markerLost', () => {
+    markerElement.addEventListener('markerLost', () => {
         markerStatusText.setAttribute('value', 'Marker not detected');
         markerStatusText.setAttribute('color', 'red');
-      });
+        modelElement.setAttribute('visible', 'false');
+    });
 
-      // Check if model is loaded
-      const modelElement = document.getElementById('model');
-      modelElement.addEventListener('model-loaded', () => {
+    // Add event listener for model loading
+    modelElement.addEventListener('model-loaded', () => {
         modelStatusText.setAttribute('value', 'Model loaded');
         modelStatusText.setAttribute('color', 'green');
-      });
+    });
 
-      modelElement.addEventListener('error', () => {
+    modelElement.addEventListener('error', () => {
         modelStatusText.setAttribute('value', 'Model failed to load');
         modelStatusText.setAttribute('color', 'red');
-      });
-    </script>
-  </body>
+    });
+</script>
+
+</body>
 </html>
