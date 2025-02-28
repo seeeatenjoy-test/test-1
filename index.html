@@ -17,8 +17,8 @@
 
   <!-- AR.js marker-based AR setup -->
   <a-scene embedded arjs>
-    <!-- Define the marker -->
-    <a-marker type="pattern" url="marker.patt">
+    <!-- Use the default Hiro marker -->
+    <a-marker preset="hiro">
       <!-- 3D Model: Loaded as a GLB file -->
       <a-entity gltf-model="url(monkey.glb)" scale="0.2 0.2 0.2" position="0 0 0" rotation="0 180 0"></a-entity>
     </a-marker>
@@ -29,7 +29,7 @@
 
   <!-- Simple instructions -->
   <div style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); color: white; font-size: 20px;">
-    <h3>Scan the marker with your camera to view the dish!</h3>
+    <h3>Scan the Hiro marker with your camera to view the dish!</h3>
   </div>
 </body>
 </html>
